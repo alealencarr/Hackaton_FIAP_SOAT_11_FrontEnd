@@ -223,9 +223,9 @@ const PortalTooltip = ({ text, children }) => {
             {/* Seta do tooltip */}
             <div 
                 className={`absolute left-1/2 -translate-x-1/2 border-4 border-transparent ${
-                    position.placement === 'top' 
-                    ? 'top-full border-t-red-500/30' 
-                    : 'bottom-full border-b-red-500/30'
+                  position.placement === 'top' 
+                  ? 'top-full border-t-red-500/30' 
+                  : 'bottom-full border-b-red-500/30'
                 }`} 
             />
           </motion.div>
@@ -292,13 +292,23 @@ const UploadView = ({ onUploadSuccess }) => {
         body: formData
       });
       const json = await res.json();
-      
+         
       if (res.ok) {
         setLastUpload(json);
         onUploadSuccess();
       } else {
-        const msg = json.messages ? json.messages.join(', ') : (json.message || "Erro desconhecido");
-        alert("Erro no upload: " + msg);
+        let errorMsg = json.message || "Erro desconhecido";
+       if (errData.errors) {
+               errorMsg = Object.values(errData.errors).flat()[0];
+            } else if (errData.message) {
+               errorMsg = errData.message;
+            } else if (errData.title) {
+               errorMsg = errData.title;
+            }
+             else if (errData.messages) {
+               errorMsg = errData.messages[0];
+            }
+        alert("Erro no upload: " + errorMsg);
       }
     } catch (err) {
       alert("Erro de conexão");
@@ -571,6 +581,21 @@ const DashboardLayout = () => {
       if (res.ok && Array.isArray(json.data)) {
         setVideos(json.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       }
+      else 
+      {
+        let errorMsg = json.message || "Erro desconhecido";
+       if (errData.errors) {
+               errorMsg = Object.values(errData.errors).flat()[0];
+            } else if (errData.message) {
+               errorMsg = errData.message;
+            } else if (errData.title) {
+               errorMsg = errData.title;
+            }
+             else if (errData.messages) {
+               errorMsg = errData.messages[0];
+            }
+            alert("Erro:" + errorMsg)
+      }
       setLoading(false);
     } catch (e) { 
         setLoading(false); 
@@ -587,7 +612,20 @@ const DashboardLayout = () => {
     try {
         setDownloadingId(id); // Ativa Spinner
         const res = await fetch(`${API_BASE_URL}/videos/${id}/download`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!res.ok) throw new Error("Erro");
+           if (!res.ok) {
+       let errorMsg = json.message || "";
+       if (errData.errors) {
+               errorMsg = Object.values(errData.errors).flat()[0];
+            } else if (errData.message) {
+               errorMsg = errData.message;
+            } else if (errData.title) {
+               errorMsg = errData.title;
+            }
+             else if (errData.messages) {
+               errorMsg = errData.messages[0];
+            }
+       throw new Error(errorMsg);
+    }
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -595,7 +633,7 @@ const DashboardLayout = () => {
         document.body.appendChild(a); a.click();
         document.body.removeChild(a); window.URL.revokeObjectURL(url);
     } catch (e) { 
-        alert("Erro ao baixar o arquivo."); 
+        alert("Erro ao baixar o arquivo: " + e.message); 
     } finally {
         setDownloadingId(null); // Desativa Spinner
     }
@@ -705,12 +743,36 @@ const AuthPage = ({ type, onNavigate }) => {
         const res = await fetch(`${API_BASE_URL}/auth/register`, {
            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(form) 
         });
-        if (!res.ok) throw new Error("Erro no registro");
+        
+        if (!res.ok) {
+          let errorMsg = "Erro no registro";
+          try {
+            const errData = await res.json();
+        
+            if (errData.errors) {
+               errorMsg = Object.values(errData.errors).flat()[0];
+            } else if (errData.message) {
+               errorMsg = errData.message;
+            } else if (errData.title) {
+               errorMsg = errData.title;
+            }
+             else if (errData.messages) {
+               errorMsg = errData.messages[0];
+            }
+          } catch(err) {
+            // Em caso de falha ao ler o JSON, o errorMsg padrão "Erro no registro" será mantido
+          }
+          throw new Error(errorMsg);
+        }
+
         alert("Conta criada! Faça login.");
         onNavigate('login');
       }
-    } catch (e) { setError(e.message || "Ocorreu um erro."); } 
-    finally { setLoading(false); }
+    } catch (e) { 
+      setError(e.message || "Ocorreu um erro."); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
@@ -777,8 +839,24 @@ const App = () => {
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || "Login falhou");
+    
+    // Agora o login também extrai as mensagens da API caso existam
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+       let errorMsg = json.message || "Login falhou";
+       if (errData.errors) {
+               errorMsg = Object.values(errData.errors).flat()[0];
+            } else if (errData.message) {
+               errorMsg = errData.message;
+            } else if (errData.title) {
+               errorMsg = errData.title;
+            }
+             else if (errData.messages) {
+               errorMsg = errData.messages[0];
+            }
+       throw new Error(errorMsg);
+    }
+    
     localStorage.setItem('token', json.data.token);
     localStorage.setItem('user', JSON.stringify(json.data.user));
     setToken(json.data.token); setUser(json.data.user); setPage('dashboard');
