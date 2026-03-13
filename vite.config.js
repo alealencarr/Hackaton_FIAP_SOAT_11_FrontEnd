@@ -9,7 +9,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         // Atualizado para HTTPS e porta 5001 para evitar Redirect HTTP->HTTPS
-        target: 'http://20.226.201.157', 
+        target: 'https://20.226.201.157', 
         changeOrigin: true,
         secure: false, // Permite certificados HTTPS auto-assinados (comum em dev/localhost)
       },
