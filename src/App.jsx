@@ -9,7 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Configuração da API ---
-const API_BASE_URL = 'http://20.226.201.157/api';
+const API_BASE_URL = 'https://20.226.201.157/api';
 
 // --- Contexto de Autenticação ---
 const AuthContext = createContext(null);
