@@ -492,7 +492,7 @@ const LibraryView = ({ videos, loading, onDownload, downloadingId }) => {
                          {video.originalFileName}
                        </h4>
                        <div className="flex items-center gap-4 text-xs text-slate-500 mt-2 font-mono">
-                          <span className="flex items-center gap-1.5"><Clock className="w-3 h-3 text-fuchsia-600"/> {new Date('2026-03-13').toLocaleDateString('pt-BR')}</span>
+                          <span className="flex items-center gap-1.5"><Clock className="w-3 h-3 text-fuchsia-600"/>{new Date('2026-03-13T04:00:00').toLocaleDateString('pt-BR')</span>
                           {video.frameCount && (
                             <span className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-violet-400 group-hover:border-violet-500/30 transition-colors">
                                <Film className="w-3 h-3"/> {video.frameCount} FRAMES
